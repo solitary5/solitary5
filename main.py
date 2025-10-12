@@ -179,7 +179,7 @@ if __name__ == "__main__":
     print(f"Detected {num_cores} CPU cores.")
 
     # Giới hạn số process tùy theo máy
-    num_processes = min(5, num_cores)  # an toàn trên máy yếu
+    num_processes = min(3, num_cores)  # an toàn trên máy yếu
 
     processes = []
     for _ in range(num_processes):
@@ -189,3 +189,4 @@ if __name__ == "__main__":
 
     for p in processes:
         p.join()
+
