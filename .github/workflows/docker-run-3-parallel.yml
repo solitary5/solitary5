@@ -1,0 +1,32 @@
+name: Build and Run 3 Containers in Parallel (15m timeout)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: |
+          docker build -t selenium-app .
+
+      - name: Run 3 containers in parallel (each 15min max)
+        run: |
+          echo "Starting 3 containers..."
+          for i in 1 2 3; do
+            echo "Launching container $i ..."
+            (docker run --rm selenium-app & sleep 900; echo "Stopping container $i after 15min"; pkill -f "selenium-app") &
+          done
+          wait
+          echo "All containers finished or timed out."
