@@ -1,14 +1,16 @@
-name: Build and Run 3 Containers in Parallel (15m timeout)
+name: Build and Run 20 Containers in Parallel (15m timeout)
 
 on:
   workflow_dispatch:
   push:
     branches: [ "main" ]
+  schedule:
+    - cron: '*/30 * * * *'
 
 jobs:
   build-and-run:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30   # tổng thời gian cho cả job
 
     steps:
       - name: Checkout repository
@@ -19,14 +21,21 @@ jobs:
 
       - name: Build Docker image
         run: |
+          echo "Building Docker image..."
           docker build -t selenium-app .
 
-      - name: Run 3 containers in parallel (each 15min max)
+      - name: Run 20 containers in parallel (each 15min max)
         run: |
-          echo "Starting 3 containers..."
-          for i in 1 2 3; do
+          echo "Starting 20 containers in parallel..."
+          for i in $(seq 1 20); do
             echo "Launching container $i ..."
-            (docker run --rm selenium-app & sleep 900; echo "Stopping container $i after 15min"; pkill -f "selenium-app") &
+            (
+              docker run --name selenium_$i --rm selenium-app &
+              PID=$!
+              sleep 900   # 15 phút
+              echo "Stopping container $i after 15 minutes..."
+              pkill -P $PID || true
+            ) &
           done
           wait
-          echo "All containers finished or timed out."
+          echo "✅ All 20 containers finished or timed out."
